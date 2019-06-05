@@ -164,7 +164,7 @@ INSERT INTO negocio (valor, data_negocio, observacao, forma_pagto, duracao,id_im
  
   -- RELATORIOS
    
-   -- Select id_imovel, endereco, descricao From Imovel Where status= 'Vendido';  
+    Select id_imovel, endereco, descricao From Imovel Where status= 'Vendido';  
    
 	
     
