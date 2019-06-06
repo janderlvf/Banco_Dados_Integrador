@@ -116,7 +116,7 @@ INSERT INTO Tipo_Imovel (tipo_imovel)
 		   ('Alugado'),
 		   ('Disponivel');  
            
- Select  * From Tipo_Imovel; 
+ -- Select  * From Tipo_Imovel; 
     
 INSERT INTO Imovel (endereco, descricao , status, id_tipo_imovel) values 
 		   ('Rua Claudia Avila', 'Casa 4 quartos com suite', 'Vendido', '1'),
@@ -127,7 +127,7 @@ INSERT INTO Imovel (endereco, descricao , status, id_tipo_imovel) values
 		   ('Av. Maria Jose', 'Comercio para lojas ', 'Disponivel','2'),
 		   ('Av. Roberto Carlos', 'Apartamento 3 quartos', 'Disponivel', '3');
    
-   Select  * From Imovel;
+   -- Select  * From Imovel;
    
 INSERT INTO Cliente (endereco_cliente, nome , estado_civil, cpf, rg) 
 	Values ('Rua Ana Avila', 'Marcos Jose ', 'Casado', '05838501824', 'MG14045120'),
@@ -139,7 +139,7 @@ INSERT INTO Cliente (endereco_cliente, nome , estado_civil, cpf, rg)
 		   ('Av. Roberto Carlos dos Anjos', 'Raul Carlos', 'Casado', '65838501824', 'MG92045120');
            
    
-Select  * From Cliente;        
+-- Select  * From Cliente;        
            
 INSERT INTO Corretor (nome ,creci , endereco, telefone) 
 	Values ('Alan Marcos Jose ',  '14045120','Rua Ana Avila', '998182822'),
@@ -147,7 +147,7 @@ INSERT INTO Corretor (nome ,creci , endereco, telefone)
 		   ('Arthur Victor Carvalho', '12045810','Avenida Luciano Alves Fernandes', '989672345' ),
 		   ( 'Carlos Leonardo Souza', '12005120','Rua Manoel Joaquim Jose', '9986723454' );
 
-Select  * From Corretor;
+-- Select  * From Corretor;
 
 INSERT INTO tipo_negocio (tipo_negocio)
 	Values ('Venda'),
@@ -160,11 +160,17 @@ INSERT INTO negocio (valor, data_negocio, observacao, forma_pagto, duracao,id_im
 		   ('5000', '28-10-2015', ' ', 'todo dia 5', '6 vezes', '3','2', '3'),
 		   ('333000', '28-10-2015', 'falta documentacao', '36 vezes',' ', '1','1', '1');
  
- select * from negocio;
+ -- select * from negocio;
  
   -- RELATORIOS
    
-    Select id_imovel, endereco, descricao From Imovel Where status= 'Vendido';  
+   -- Select id_imovel, endereco, descricao From Imovel Where status= 'Vendido';  
    
+   -- Select id_negocio, valor From  negocio n , imovel i Where n.id_imovel = i.id_imovel and n.valor >= 100000 and i.status = 'Vendido';
+
+	/*Select N.id_negocio, I.descricao, AVG(N.valor) from negocio N INNER join imovel I ON (N.id_negocio = I.id_imovel) GROUP BY id_negocio;*/
+   
+   -- SELECT C.nome, SUM(N.Valor) FROM corretor C , negocio N WHERE C.id_corretor = N.id_corretor and C.id_corretor = 3 ;
+
 	
     
