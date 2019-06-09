@@ -1,14 +1,13 @@
 /* Lógico_IMOBILIARIA2: */
-
+DROP DATABASE imobiliaria;
 create database imobiliaria;
 use imobiliaria;
-
 
 CREATE TABLE Imovel (
     id_imovel int auto_increment PRIMARY KEY,
     endereco VARCHAR(50),
     descricao VARCHAR(100),
-    status  ENUM ('Vendido', 'Alugado', 'Disponivel'),
+    status  ENUM ('Indisponivel', 'Alugado', 'Disponivel','Reforma'),
     id_tipo_imovel int
 );
 
@@ -43,14 +42,13 @@ CREATE TABLE Tipo_Negocio (
     tipo_negocio VARCHAR(50) NOT NULL
 );
 
-
 CREATE TABLE Negocio (
     id_negocio int auto_increment PRIMARY KEY,
     valor int NOT NULL,
     data_negocio VARCHAR(50),
     observacao VARCHAR(100),
-    forma_pagto VARCHAR(50),
-    duracao VARCHAR(50),
+    forma_pagto ENUM('DEPOSITO','BOLETO'),
+    duracao  ENUM ('INDETERMINADO', '12 meses', '24 meses', '36 meses' ,'48 meses', '60 meses'),
     id_imovel int,
     id_tipo_negocio int,
     id_corretor int
@@ -59,7 +57,7 @@ CREATE TABLE Negocio (
 CREATE TABLE Historico (
     id_imovel int,
     id_cliente int,
-    status VARCHAR(50) NOT NULL,
+    status ENUM ('ATUAL', 'ANTIGO') NOT NULL,
     data_efetivacao DATE NOT NULL
 );
 
@@ -116,19 +114,17 @@ INSERT INTO Tipo_Imovel (tipo_imovel)
 		   ('Alugado'),
 		   ('Disponivel');  
            
- -- Select  * From Tipo_Imovel; 
     
 INSERT INTO Imovel (endereco, descricao , status, id_tipo_imovel) values 
-		   ('Rua Claudia Avila', 'Casa 4 quartos com suite', 'Vendido', '1'),
+		   ('Rua Claudia Avila', 'Casa 4 quartos com suite', 'Indisponivel', '1'),
 		   ('Rua Claudio Felix', 'Terreno 500 m²', 'Alugado', '2'),
-		   ('Avenida Luciano Fernandes', 'Apartamento 2 quartos com sacada', 'Vendido', '3'),
+		   ('Avenida Luciano Fernandes', 'Apartamento 2 quartos com sacada', 'Indisponivel', '3'),
 		   ('Rua Manoel Jose', 'Chacara 5 quartos', 'Alugado', '4'),
 		   ('Av. Marcos Paulo', 'Casa 3 quartos', 'Disponivel', '1'),
 		   ('Av. Maria Jose', 'Comercio para lojas ', 'Disponivel','2'),
 		   ('Av. Roberto Carlos', 'Apartamento 3 quartos', 'Disponivel', '3');
    
-   -- Select  * From Imovel;
-   
+
 INSERT INTO Cliente (endereco_cliente, nome , estado_civil, cpf, rg) 
 	Values ('Rua Ana Avila', 'Marcos Jose ', 'Casado', '05838501824', 'MG14045120'),
 		   ('Rua Theo Felix', 'Jander luis Viana', 'Solteiro', '15838521824', 'MG12045000'),
@@ -137,9 +133,7 @@ INSERT INTO Cliente (endereco_cliente, nome , estado_civil, cpf, rg)
 		   ('Av. Marcos Paulo Alvim', 'Leandro Quadros', 'Casado', '45831501824', 'MG14045121'),
 		   ('Av. Maria Jose Calixto', 'Maria Joaquina de Amaral  ', 'Casado','55838501824', 'MG12045160'),
 		   ('Av. Roberto Carlos dos Anjos', 'Raul Carlos', 'Casado', '65838501824', 'MG92045120');
-           
-   
--- Select  * From Cliente;        
+                
            
 INSERT INTO Corretor (nome ,creci , endereco, telefone) 
 	Values ('Alan Marcos Jose ',  '14045120','Rua Ana Avila', '998182822'),
@@ -147,18 +141,16 @@ INSERT INTO Corretor (nome ,creci , endereco, telefone)
 		   ('Arthur Victor Carvalho', '12045810','Avenida Luciano Alves Fernandes', '989672345' ),
 		   ( 'Carlos Leonardo Souza', '12005120','Rua Manoel Joaquim Jose', '9986723454' );
 
--- Select  * From Corretor;
-
 INSERT INTO Tipo_Negocio (tipo_negocio)
 	Values ('Venda'),
 		   ('Aluguel'); 
            
            
 INSERT INTO Negocio (valor, data_negocio, observacao, forma_pagto, duracao,id_imovel, id_tipo_negocio, id_corretor) 
-	Values ('100000', '28-10-2018', 'falta documentacao', '36 vezes', ' ','3','1', '3'),
-		   ('220000', '28-10-2010', 'entrega feita', '36 vezes', ' ','2','1', '2'),
-		   ('5000', '28-10-2015', ' ', 'todo dia 5', '6 vezes', '3','2', '3'),
-		   ('333000', '28-10-2015', 'falta documentacao', '36 vezes',' ', '1','1', '1');
+	Values ('100000', '28-10-2018', 'falta documentacao','DEPOSITO', '36 meses','3','1', '3'),
+		   ('220000', '28-10-2010', 'entrega feita', 'DEPOSITO','36 meses','2','1', '2'),
+		   ('5000', '28-10-2015', 'todo dia 5','DEPOSITO', '12 meses', '3','2', '3'),
+		   ('333000', '28-10-2015', 'falta documentacao','DEPOSITO', '36 meses', '1','1', '1');
  
  -- select * from negocio;
  
