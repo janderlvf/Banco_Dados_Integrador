@@ -149,12 +149,12 @@ INSERT INTO Corretor (nome ,creci , endereco, telefone)
 
 -- Select  * From Corretor;
 
-INSERT INTO tipo_negocio (tipo_negocio)
+INSERT INTO Tipo_Negocio (tipo_negocio)
 	Values ('Venda'),
 		   ('Aluguel'); 
            
            
-INSERT INTO negocio (valor, data_negocio, observacao, forma_pagto, duracao,id_imovel, id_tipo_negocio, id_corretor) 
+INSERT INTO Negocio (valor, data_negocio, observacao, forma_pagto, duracao,id_imovel, id_tipo_negocio, id_corretor) 
 	Values ('100000', '28-10-2018', 'falta documentacao', '36 vezes', ' ','3','1', '3'),
 		   ('220000', '28-10-2010', 'entrega feita', '36 vezes', ' ','2','1', '2'),
 		   ('5000', '28-10-2015', ' ', 'todo dia 5', '6 vezes', '3','2', '3'),
