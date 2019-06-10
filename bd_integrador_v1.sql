@@ -64,7 +64,7 @@ CREATE TABLE Historico (
 CREATE TABLE Participacao (
     id_cliente int,
     id_negocio int,
-    tipo_participacao VARCHAR(50)
+    tipo_participacao ENUM('COMPRADOR','VENDEDOR','LOCADOR','LOCATARIO')
 );
  
 ALTER TABLE Imovel ADD CONSTRAINT FK_Imovel_2
@@ -110,9 +110,7 @@ ALTER TABLE Participacao ADD CONSTRAINT FK_Participacao_2
 INSERT INTO Tipo_Imovel (tipo_imovel)
 	Values ('Chacara'),
 		   ('Terreno'),
-		   ('Apartamento'),
-		   ('Alugado'),
-		   ('Disponivel');  
+		   ('Apartamento');
            
     
 INSERT INTO Imovel (endereco, descricao , status, id_tipo_imovel) values 
