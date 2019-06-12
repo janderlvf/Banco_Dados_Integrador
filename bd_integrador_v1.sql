@@ -9,7 +9,8 @@ CREATE TABLE Imovel (
     endereco VARCHAR(50),
     descricao VARCHAR(100),
     status  ENUM ('Indisponivel', 'Alugado', 'Disponivel','Reforma'),
-    id_tipo_imovel int
+    id_tipo_imovel int,
+	valor			int
 );
 
 
@@ -107,6 +108,63 @@ ALTER TABLE Participacao ADD CONSTRAINT FK_Participacao_2
     FOREIGN KEY (id_negocio)
     REFERENCES Negocio (id_negocio)
     ON DELETE RESTRICT;
+	
+/* ################################################################# FUNCTIONS ###############################################################33 */ 
+
+
+drop FUNCTION if EXISTS fc_calc_comissao_corretor
+
+DELIMITER	|		
+CREATE	FUNCTION	fc_calc_comissao_corretor(
+	periodo varchar(30)
+	,valor int
+)		
+RETURNS	numeric(7,2)	BEGIN		
+DECLARE	var_comissao numeric(7,2);	
+	IF(LOCATE('Inderteminado',periodo) > 0)
+	THEN
+		SET var_comissao = 0.05 * valor;
+	ELSEIF(LOCATE('12',periodo))
+	THEN
+		SET var_comissao = 0.01 * valor;
+	ELSEIF(LOCATE('24',periodo))
+	THEN
+		SET var_comissao = 0.02 * valor;
+	ELSEIF(LOCATE('36',periodo))
+	THEN
+		SET var_comissao = 0.03 * valor;
+	ELSEIF(LOCATE('48',periodo))
+	THEN
+		SET var_comissao = 0.04 * valor;
+	ELSEIF(LOCATE('60',periodo))
+	THEN
+		SET var_comissao = 0.05 * valor;
+	ELSE
+		SET var_comissao = 0;
+	END IF;
+	
+
+RETURN	var_comissao;		
+END	|
+DELIMITER ;
+
+drop FUNCTION if EXISTS fc_format_telefone;
+
+DELIMITER	|		
+CREATE	FUNCTION	fc_format_telefone(
+	telefone varchar(50)
+
+)		
+RETURNS	varchar(50)	BEGIN		
+DECLARE	var_telefone_ormatado varchar(50);	
+	
+	select 
+  	concat('(',substr(telefone,1,2),') ',substr(telefone,3,5),'-',substr(telefone,8)) into var_telefone_ormatado;
+
+
+RETURN	var_telefone_ormatado;		
+END	|
+
 
 
 /* ################################################################# PROCEDURES ###############################################################33 */ 
@@ -206,7 +264,8 @@ IN in_descricao varchar(255)
 ,IN in_status varchar(40)
 ,IN in_tipo_imovel varchar(40)
 ,IN in_endereco varchar(255)
-,IN in_cpf varchar(15))
+,IN in_cpf varchar(15)
+,IN in_valor int)
 BEGIN
    DECLARE var_id_tipo_imovel INT ;
    DECLARE var_id_cliente INT;
@@ -227,8 +286,8 @@ BEGIN
 		SIGNAL	SQLSTATE	'45000'	SET	MESSAGE_TEXT	=	msg;
 	END IF;
       
-	INSERT INTO Imovel(endereco,descricao,status,id_tipo_imovel)
-	VALUES(in_endereco,in_descricao,in_status,var_id_tipo_imovel);
+	INSERT INTO Imovel(endereco,descricao,status,id_tipo_imovel,valor)
+	VALUES(in_endereco,in_descricao,in_status,var_id_tipo_imovel,in_valor);
 
 	CALL pr_cad_historico(var_id_cliente,(SELECT MAX(id_imovel) from Imovel));
 
@@ -244,13 +303,25 @@ CREATE	PROCEDURE	pr_cad_negocio(
 	, IN in_forma_pagamento varchar(255)
 	, IN in_duracao varchar(255)
 	, IN in_id_imovel INT
-	, IN in_id_tipo_negocio varchar(255)
 	, IN in_id_corretor int
 	, IN in_id_cliente1 INT 
 	, IN in_id_cliente2 INT
 	, IN in_tipo_participacao_cliente1 varchar(30)
 	, IN in_tipo_participacao_cliente2 varchar(30))	
 BEGIN	
+	
+	DECLARE	var_id_tipo_negocio varchar(255);
+	select id_tipo_negocio  into var_id_tipo_negocio from Tipo_Negocio where tipo_negocio = 'Aluguel';
+	IF(in_tipo_participacao_cliente1 = 'Comprador' or in_tipo_participacao_cliente2 = 'Vendedor')
+	THEN
+			select id_tipo_negocio  into var_id_tipo_negocio from Tipo_Negocio where tipo_negocio = 'Venda';
+	END IF;
+
+	
+	IF(in_valor = null)
+	THEN
+		SELECT valor INTO in_valor FROM Imovel WHERE id_imovel = in_id_imovel;
+	END IF;
 	
 	INSERT INTO Negocio(
 		valor
@@ -269,15 +340,14 @@ BEGIN
 		,in_forma_pagamento
 		,in_duracao
 		,in_id_imovel
-		,in_id_tipo_negocio
+		,var_id_tipo_negocio
 		,in_id_corretor
 	);
 
-	insert into Participacao(id_cliente, tipo_participacao) values(in_id_cliente1,in_tipo_participacao_cliente1)
-	,(in_id_cliente2,in_tipo_participacao_cliente2);
+	insert into Participacao(id_cliente, tipo_participacao,id_negocio) values(in_id_cliente1,in_tipo_participacao_cliente1,(select max(id_negocio) from Negocio))
+	,(in_id_cliente2,in_tipo_participacao_cliente2,(select max(id_negocio) from Negocio));
 END	$		
 delimiter	;
-
 /* ################################################################# TRIGGERS ###############################################################33 */ 
 drop TRIGGER IF EXISTS tr_muda_dono_imovel;
 
@@ -318,44 +388,6 @@ END	$
 delimiter	;	
 
 
-/* ################################################################# FUNCTIONS ###############################################################33 */ 
-
-
-drop FUNCTION if EXISTS fc_calc_comissao_corretor
-
-DELIMITER	|		
-CREATE	FUNCTION	fc_calc_comissao_corretor(
-	periodo varchar(30)
-	,valor int
-)		
-RETURNS	numeric(7,2)	BEGIN		
-DECLARE	var_comissao numeric(7,2);	
-	IF(LOCATE('Inderteminado',periodo) > 0)
-	THEN
-		SET var_comissao = 0.05 * valor;
-	ELSEIF(LOCATE('12',periodo))
-	THEN
-		SET var_comissao = 0.01 * valor;
-	ELSEIF(LOCATE('24',periodo))
-	THEN
-		SET var_comissao = 0.02 * valor;
-	ELSEIF(LOCATE('36',periodo))
-	THEN
-		SET var_comissao = 0.03 * valor;
-	ELSEIF(LOCATE('48',periodo))
-	THEN
-		SET var_comissao = 0.04 * valor;
-	ELSEIF(LOCATE('60',periodo))
-	THEN
-		SET var_comissao = 0.05 * valor;
-	ELSE
-		SET var_comissao = 0;
-	END IF;
-	
-
-RETURN	var_comissao;		
-END	|
-DELIMITER ;
 
 /* ################################################################# INSERTS ###############################################################33 */ 
 
@@ -383,33 +415,112 @@ CALL imobiliaria.pr_cad_cliente('Av. Maria Jose Calixto', 'Maria Joaquina de Ama
 CALL imobiliaria.pr_cad_cliente('Av. Roberto Carlos dos Anjos', 'Raul Carlos', 'Casado', '65838501824', 'MG92045120');
 
 
-CALL imobiliaria.pr_cad_imovel('Casa 4 quartos com suite', 'Indisponivel','Chacara','Rua Claudia Avila','05838501824');
-CALL imobiliaria.pr_cad_imovel('Terreno 500 m²', 'Alugado','Terreno','Rua Claudio Felix','15838521824');
-CALL imobiliaria.pr_cad_imovel('Apartamento 2 quartos com sacada','Alugado','Apartamento','Avenida Luciano Fernandes','25830501824');
-CALL imobiliaria.pr_cad_imovel('Chacara 5 quartos', 'Indisponivel','Chacara','Rua Manoel Jose','35808501824');
-CALL imobiliaria.pr_cad_imovel( 'Casa 3 quartos','Alugado', 'Chacara','Av. Maria Jose','35808501824');
-CALL imobiliaria.pr_cad_imovel('Comercio para lojas' ,'Disponivel','Terreno','Av. Roberto Carlos','05838501824');
-CALL imobiliaria.pr_cad_imovel( 'Apartamento 3 quartos', 'Disponivel','Apartamento','Av. Marcos Paulo','05838501824');
+CALL imobiliaria.pr_cad_imovel('Casa 4 quartos com suite', 'Indisponivel','Chacara','Rua Claudia Avila','05838501824',1500);
+CALL imobiliaria.pr_cad_imovel('Terreno 500 m²', 'Alugado','Terreno','Rua Claudio Felix','15838521824',2800);
+CALL imobiliaria.pr_cad_imovel('Apartamento 2 quartos com sacada','Alugado','Apartamento','Avenida Luciano Fernandes','25830501824',45666);
+CALL imobiliaria.pr_cad_imovel('Chacara 5 quartos', 'Indisponivel','Chacara','Rua Manoel Jose','35808501824',2500000);
+CALL imobiliaria.pr_cad_imovel( 'Casa 3 quartos','Alugado', 'Chacara','Av. Maria Jose','35808501824',9999);
+CALL imobiliaria.pr_cad_imovel('Comercio para lojas' ,'Disponivel','Terreno','Av. Roberto Carlos','05838501824',4700);
+CALL imobiliaria.pr_cad_imovel( 'Apartamento 3 quartos', 'Disponivel','Apartamento','Av. Marcos Paulo','05838501824',800);
 
-CALL imobiliaria.pr_cad_negocio(100000, 'falta documentacao','DEPOSITO','36 meses',3,1,3,1,2,'Comprador','Vendedor');
-CALL imobiliaria.pr_cad_negocio(220000, 'entrega feita','BOLETO','36 meses',2,1,2,1,2,'Comprador','Vendedor');
-CALL imobiliaria.pr_cad_negocio(5000, 'todo dia 5','BOLETO','12 meses',3,2,3,1,2,'Comprador','Vendedor');
-CALL imobiliaria.pr_cad_negocio(333000, 'falta documentacao','DEPOSITO','24 meses',3,1,3,1,2,'Comprador','Vendedor');
+CALL imobiliaria.pr_cad_negocio(100000, 'falta documentacao','DEPOSITO','36 meses',1,3,1,2,'Comprador','Vendedor');
+CALL imobiliaria.pr_cad_negocio(220000, 'entrega feita','BOLETO','36 meses',2,3,1,2,'Comprador','Vendedor');
+CALL imobiliaria.pr_cad_negocio(5000, 'todo dia 5','BOLETO','12 meses',3,2,1,2,'Comprador','Vendedor');
+CALL imobiliaria.pr_cad_negocio(333000, 'falta documentacao','DEPOSITO','24 meses',3,1,1,2,'LOCADOR','LOCATARIO');
 
 
-/* ################################################################# RELATORIOS ###############################################################33 */ 
+/* ################################################################# RELATORIOS ###############################################################*/ 
 
- -- select * from negocio;
- 
-  -- RELATORIOS
-   
-   -- Select id_imovel, endereco, descricao From Imovel Where status= 'Vendido';  
-   
-   -- Select id_negocio, valor From  negocio n , imovel i Where n.id_imovel = i.id_imovel and n.valor >= 100000 and i.status = 'Vendido';
+/* imoveis disponiveis*/
+drop PROCEDURE if exists pr_rel_imoveis_disponiveis;
+delimiter	$	
+CREATE	PROCEDURE	pr_rel_imoveis_disponiveis()	
+BEGIN	
+	select 
+		i.descricao
+		,i.endereco
+		,tp.tipo_imovel 
+		,i.valor
+	from Imovel  i
+	inner join Tipo_Imovel tp 
+		on tp.id_tipo = i.id_tipo_imovel
+	where status = 'Disponivel';
+END	$		
+delimiter	;
 
-	/*Select N.id_negocio, I.descricao, AVG(N.valor) from negocio N INNER join imovel I ON (N.id_negocio = I.id_imovel) GROUP BY id_negocio;*/
-   
-   -- SELECT C.nome, SUM(N.Valor) FROM corretor C , negocio N WHERE C.id_corretor = N.id_corretor and C.id_corretor = 3 ;
+/* imoveis alugados*/
+drop PROCEDURE if exists pr_rel_imoveis_negocio_aluguel;
+delimiter	$	
+CREATE	PROCEDURE	pr_rel_imoveis_negocio_aluguel()	
+BEGIN	
+	select c.nome
+		,p.tipo_participacao
+		,n.valor
+		,c.nome as corretor
+		,i.descricao
+	from Negocio n 
+	inner join Tipo_Negocio tn 
+		on tn.id_tipo_negocio = n.id_tipo_negocio
+	inner join Corretor c 
+		on c.id_corretor = n.id_corretor
+	inner join Participacao p 
+		on p.id_negocio = n.id_negocio
+	inner join Imovel i
+		on i.id_imovel = n.id_imovel 
+	inner join Cliente cl
+		on cl.id_cliente = p.id_cliente
+	where p.tipo_participacao = 'LOCADOR' OR p.tipo_participacao = 'LOCATARIO';
+	
+END	$		
+delimiter	;
+
+
+/* calculo comissao*/
+drop PROCEDURE if exists pr_rel_comissao;
+delimiter	$	
+CREATE	PROCEDURE	pr_rel_comissao()	
+BEGIN	
+	
+	select
+		c.nome
+		,sum((n.valor)) as total
+		,sum(fc_calc_comissao_corretor(n.duracao,n.valor)) as comissao
+		,count(c.nome) as qtd_negocios
+	from Negocio n 
+	inner join Corretor c
+		on n.id_corretor = c.id_corretor
+	group by 
+		c.nome;
+	
+END	$		
+delimiter	;
+
+/* imoveis vendidos*/
+drop PROCEDURE if exists pr_rel_imoveis_negocio_venda;
+delimiter	$	
+CREATE	PROCEDURE	pr_rel_imoveis_negocio_venda()	
+BEGIN	
+	select c.nome
+		,p.tipo_participacao
+		,n.valor
+		,c.nome as corretor
+		,i.descricao
+	from Negocio n 
+	inner join Tipo_Negocio tn 
+		on tn.id_tipo_negocio = n.id_tipo_negocio
+	inner join Corretor c 
+		on c.id_corretor = n.id_corretor
+	inner join Participacao p 
+		on p.id_negocio = n.id_negocio
+	inner join Imovel i
+		on i.id_imovel = n.id_imovel 
+	inner join Cliente cl
+		on cl.id_cliente = p.id_cliente
+	where p.tipo_participacao = 'VENDEDOR' OR p.tipo_participacao = 'COMPRADOR';
+	
+END	$		
+delimiter	;
+
 
 	
     
