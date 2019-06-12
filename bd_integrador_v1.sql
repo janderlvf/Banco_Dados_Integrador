@@ -165,7 +165,16 @@ DECLARE	var_telefone_ormatado varchar(50);
 RETURN	var_telefone_ormatado;		
 END	|
 
-
+drop FUNCTION if EXISTS fc_get_number_clientes_from_estado_civil_case_insensitive;
+DELIMITER |
+CREATE FUNCTION fc_get_number_clientes_from_estado_civil_case_insensitive(
+	var_estado_civil varchar(50) 
+)
+RETURNS int BEGIN
+DECLARE number_clientes int;
+	select count(*) from Cliente where upper(estado_civil) = upper(var_estado_civil) into number_clientes;
+RETURN number_clientes
+END |
 
 /* ################################################################# PROCEDURES ###############################################################33 */ 
 
