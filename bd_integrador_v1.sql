@@ -68,6 +68,27 @@ CREATE TABLE Participacao (
     id_negocio int,
     tipo_participacao ENUM('COMPRADOR','VENDEDOR','LOCADOR','LOCATARIO')
 );
+
+CREATE TABLE Historico_Endereco_Cliente (
+    id_historico_ender_cliente int auto_increment PRIMARY KEY,
+    endereco_antigo VARCHAR(50),
+    endereco_novo VARCHAR(100),
+    data_alteracao DATE 
+);
+
+CREATE TABLE Historico_Imovel (
+    id_historico_imovel int auto_increment PRIMARY KEY,
+    descricao_antiga VARCHAR(50),
+    descricao_nova   VARCHAR(100),
+    data_alteracao DATE
+);
+
+CREATE TABLE Historico_Endereco_Corretor (
+    id_historico_imovel int auto_increment PRIMARY KEY,
+    endereco_antigo VARCHAR(50),
+    endereco_novo VARCHAR(100),
+    data_alteracao DATE
+);
  
 ALTER TABLE Imovel ADD CONSTRAINT FK_Imovel_2
     FOREIGN KEY (id_tipo_imovel)
@@ -173,7 +194,7 @@ CREATE FUNCTION fc_get_number_clientes_from_estado_civil_case_insensitive(
 RETURNS int BEGIN
 DECLARE number_clientes int;
 	select count(*) from Cliente where upper(estado_civil) = upper(var_estado_civil) into number_clientes;
-RETURN number_clientes
+RETURN number_clientes;
 END |
 
 /* ################################################################# PROCEDURES ###############################################################33 */ 
@@ -394,7 +415,42 @@ BEGIN
 		UPDATE Imovel SET STATUS='Indisponivel' WHERE ID_IMOVEL = new.id_imovel;
 	END IF;
 END	$		
-delimiter	;	
+delimiter	;
+
+drop TRIGGER IF EXISTS tr_historico_ender_cliente;
+
+delimiter $
+CREATE	TRIGGER	tr_historico_ender_cliente	BEFORE	UPDATE	ON	cliente
+FOR	EACH ROW	
+BEGIN
+
+INSERT INTO historico_endereco_cliente(endereco_antigo, endereco_novo, data_alteracao) VALUES(old.endereco_cliente, new.endereco_cliente, CURDATE());
+END $		
+delimiter;
+
+drop TRIGGER IF EXISTS tr_historico_imovel;
+
+delimiter $
+
+CREATE	TRIGGER	tr_historico_imovel	BEFORE	UPDATE	ON	imovel
+FOR	EACH ROW	
+BEGIN
+
+INSERT INTO historico_imovel(descricao_antiga, descricao_nova, data_alteracao) VALUES(old.descricao, new.descricao, CURDATE());
+END $		
+delimiter;
+
+drop TRIGGER IF EXISTS tr_historico_endereco_corretor;
+
+delimiter $
+
+CREATE	TRIGGER	tr_historico_endereco_corretor	BEFORE	UPDATE	ON	corretor
+FOR	EACH ROW	
+BEGIN
+
+INSERT INTO historico_endereco_corretor(endereco_antigo, endereco_novo, data_alteracao) VALUES(old.endereco, new.endereco, CURDATE());
+END $
+delimiter;	
 
 
 
@@ -530,6 +586,11 @@ BEGIN
 END	$		
 delimiter	;
 
+/* ################################################################# UPDATES ###############################################################33 */ 
 
-	
+update CLIENTE set endereco_cliente = 'Rua Francisco Vicente' where id_cliente = 1;
+
+update corretor set endereco = 'Rua Segismundo Pereira' where id_corretor = 1;
+
+update imovel set descricao = 'Casa 4 quartos' where id_imovel = 1;
     
