@@ -197,6 +197,17 @@ DECLARE number_clientes int;
 RETURN number_clientes;
 END |
 
+drop FUNCTION if EXISTS fc_get_number_negocios_from_corretor;
+DELIMITER |
+CREATE FUNCTION fc_get_number_negocios_from_corretor(
+	var_id_corretor int
+)
+RETURNS int BEGIN
+DECLARE number_negocios int;
+	SELECT count(*) from Negocio WHERE id_corretor=var_id_corretor into number_negocios;
+RETURN number_negocios;
+END |
+
 /* ################################################################# PROCEDURES ###############################################################33 */ 
 
 drop PROCEDURE if exists pr_cad_cliente;
