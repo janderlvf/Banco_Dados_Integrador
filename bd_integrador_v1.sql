@@ -420,37 +420,37 @@ delimiter	;
 drop TRIGGER IF EXISTS tr_historico_ender_cliente;
 
 delimiter $
-CREATE	TRIGGER	tr_historico_ender_cliente	BEFORE	UPDATE	ON	cliente
+CREATE	TRIGGER	tr_historico_ender_cliente	BEFORE	UPDATE	ON	Cliente
 FOR	EACH ROW	
 BEGIN
 
-INSERT INTO historico_endereco_cliente(endereco_antigo, endereco_novo, data_alteracao) VALUES(old.endereco_cliente, new.endereco_cliente, CURDATE());
+INSERT INTO Historico_Endereco_Cliente(endereco_antigo, endereco_novo, data_alteracao) VALUES(old.endereco_cliente, new.endereco_cliente, CURDATE());
 END $		
-delimiter;
+delimiter ;
 
 drop TRIGGER IF EXISTS tr_historico_imovel;
 
 delimiter $
 
-CREATE	TRIGGER	tr_historico_imovel	BEFORE	UPDATE	ON	imovel
+CREATE	TRIGGER	tr_historico_imovel	BEFORE	UPDATE	ON	Imovel
 FOR	EACH ROW	
 BEGIN
 
-INSERT INTO historico_imovel(descricao_antiga, descricao_nova, data_alteracao) VALUES(old.descricao, new.descricao, CURDATE());
+INSERT INTO Historico_Imovel(descricao_antiga, descricao_nova, data_alteracao) VALUES(old.descricao, new.descricao, CURDATE());
 END $		
-delimiter;
+delimiter ;
 
 drop TRIGGER IF EXISTS tr_historico_endereco_corretor;
 
 delimiter $
 
-CREATE	TRIGGER	tr_historico_endereco_corretor	BEFORE	UPDATE	ON	corretor
+CREATE	TRIGGER	tr_historico_endereco_corretor	BEFORE	UPDATE	ON	Corretor
 FOR	EACH ROW	
 BEGIN
 
-INSERT INTO historico_endereco_corretor(endereco_antigo, endereco_novo, data_alteracao) VALUES(old.endereco, new.endereco, CURDATE());
+INSERT INTO Historico_Endereco_Corretor(endereco_antigo, endereco_novo, data_alteracao) VALUES(old.endereco, new.endereco, CURDATE());
 END $
-delimiter;	
+delimiter ;	
 
 
 
@@ -588,9 +588,9 @@ delimiter	;
 
 /* ################################################################# UPDATES ###############################################################33 */ 
 
-update CLIENTE set endereco_cliente = 'Rua Francisco Vicente' where id_cliente = 1;
+update Cliente set endereco_cliente = 'Rua Francisco Vicente' where id_cliente = 1;
 
-update corretor set endereco = 'Rua Segismundo Pereira' where id_corretor = 1;
+update Corretor set endereco = 'Rua Segismundo Pereira' where id_corretor = 1;
 
-update imovel set descricao = 'Casa 4 quartos' where id_imovel = 1;
+update Imovel set descricao = 'Casa 4 quartos' where id_imovel = 1;
     
